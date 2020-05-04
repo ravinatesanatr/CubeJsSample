@@ -6,6 +6,7 @@
     "dev": "node index.js"
   },
   "dependencies": {
+    "@cubejs-backend/mysql-driver": "^0.19.14",
     "@cubejs-backend/postgres-driver": "^0.19.14",
     "@cubejs-backend/server": "^0.19.14"
   }
