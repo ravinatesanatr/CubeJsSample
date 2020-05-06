@@ -1,6 +1,5 @@
 cube(`VisitsTable`, {
-    sql: `SELECT * FROM fuszrewrite.visitdelivered where visit_date > DATEADD(DAY, -150, GETDATE())`,
-
+    sql: `SELECT * FROM fuszrewrite.visitdelivered`,
     measures: {
         visits: {
             type: `sum`,

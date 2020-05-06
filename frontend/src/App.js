@@ -133,10 +133,15 @@ class App extends Component {
                     "VisitsOverview.videoSent",
                     "VisitsOverview.videoRatio",
                 ],
-                dimensions: ["VisitsOverview.sales1UserId"],
+                dimensions: ["VisitsOverview.sales1UserId", "VisitsOverview.source"],
+                timeDimensions: [{
+                    "dimension": "VisitsOverview.visitDate",
+                    "granularity": 'day',
+                    "dateRange": "Last year"
+                }],
                 order: {
                     'VisitsOverview.sales1UserId': 'desc'
-                },
+                }
             })
             .then(resultSet => {
                 var end = new Date().getTime();
