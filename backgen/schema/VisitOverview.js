@@ -1,6 +1,12 @@
-cube(`VisitsTable`, {
-    sql: `SELECT * FROM fuszrewrite.visitdelivered`,
+const { authInfo: { schema } } = COMPILE_CONTEXT;
+
+const schemaName = `${schema}`;
+cube(`vo`, {
+    sql: ` select *  from ${schemaName}.rpt_visit_delivered `,
     measures: {
+        count: {
+            type: `count`
+        },
         visits: {
             type: `sum`,
             sql: `visits`
@@ -27,7 +33,7 @@ cube(`VisitsTable`, {
         },
 
         proposalRatio: {
-            type: `avg`,
+            type: `sum`,
             sql: `proposalratio`
         },
 
@@ -37,7 +43,7 @@ cube(`VisitsTable`, {
         },
 
         soldRatio: {
-            type: `avg`,
+            type: `sum`,
             sql: `soldratio`
         },
 
@@ -47,12 +53,12 @@ cube(`VisitsTable`, {
         },
 
         deliveredRatio: {
-            type: `avg`,
+            type: `sum`,
             sql: `deliveredratio`
         },
 
         nonSoldTraffic: {
-            type: `avg`,
+            type: `sum`,
             sql: `nonsoldratio`
         },
 
@@ -67,7 +73,7 @@ cube(`VisitsTable`, {
         },
 
         callRatio: {
-            type: `avg`,
+            type: `sum`,
             sql: `callratio`
         },
 
@@ -82,7 +88,7 @@ cube(`VisitsTable`, {
         },
 
         textRatio: {
-            type: `avg`,
+            type: `sum`,
             sql: `textratio`
         },
 
@@ -97,7 +103,7 @@ cube(`VisitsTable`, {
         },
 
         emailRatio: {
-            type: `avg`,
+            type: `sum`,
             sql: `emailratio`
         },
 
@@ -112,7 +118,7 @@ cube(`VisitsTable`, {
         },
 
         videoRatio: {
-            type: `avg`,
+            type: `sum`,
             sql: `videoRatio`
         },
 
@@ -152,25 +158,46 @@ cube(`VisitsTable`, {
         },
 
         appointmentsRatio: {
-            type: `avg`,
+            type: `sum`,
             sql: `appointmentratio`
         }
     },
-
     dimensions: {
-        visitDate: {
-            type: `time`,
-            sql: `visit_date`
-        },
-
-        sales1UserId: {
-            type: `string`,
-            sql: `sales_1_user_id`
-        },
-
         source: {
-            type: `string`,
-            sql: `source`
+            sql: `source`,
+            type: `string`
+        },
+        salesPerson: {
+            sql: `sales1_username`,
+            type: `string`
+        },
+        vehMake: {
+            sql: `vehicle_make`,
+            type: `string`
+        },
+        vehModel: {
+            sql: `vehicle_model`,
+            type: `string`
+        },
+        teamName: {
+            sql: `team_name`,
+            type: `string`
+        },
+        visitDate: {
+            sql: `visit_date`,
+            type: `time`
+        }
+    },
+    preAggregations: {
+        categoryAndDate: {
+            type: `rollup`,
+            measureReferences: [vo.count, visits, dealUserCredit, eligibleOppEmail, mobile, proposalCount, proposalRatio, soldCount, soldRatio, deliveredCount, deliveredRatio,
+                nonSoldTraffic, eligibleCall, callAttempted, callRatio, eligibleText, textAttempted, textRatio, eligibleEmail, emailAttempted, emailRatio, eligibleVideo,
+                videoSent, videoRatio, day2NonSold, day2Attempted, day3NonSold, day3Attempted, day4NonSold, day4Attempted, appointmentsCreated, appointmentsRatio],
+            dimensionReferences: [source, vehMake, vehModel, teamName, salesPerson],
+            timeDimensionReference: visitDate,
+            granularity: `day`,
+            external: true
         }
     }
 });

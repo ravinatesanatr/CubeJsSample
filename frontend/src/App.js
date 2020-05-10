@@ -11,13 +11,9 @@ import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import NativeSelect from "@material-ui/core/NativeSelect";
-import FormHelperText from "@material-ui/core/FormHelperText";
 am4core.useTheme(am4themes_animated);
 
-const cubejsApi = cubejs('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1ODg0NzY0MTIsImV4cCI6MTU5MTA2ODQxMn0.2xYAVqOSSPJbsvOkTo0epySiz1pNfLsxKVvGOQ1S-bk', {
+const cubejsApi = cubejs('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY2hlbWEiOiJmdXN6cmV3cml0ZSIsImlhdCI6MTU4OTA3OTIxMiwiZXhwIjoxNTkxNjcxMjEyfQ.K_bGRJhw752hQxZqChrlJxmeADGnGdx-XdiWMudbmmM', {
   apiUrl: process.env.REACT_APP_API_URL
 });
 const numberFormatter = item => numeral(item).format("0,0");
@@ -34,7 +30,7 @@ class App extends Component {
         this.state = { statusFilter: '3 Months',
             sourceFilter: "all",
             columnDefs: [
-                {field: 'sales1UserId'},
+                {field: 'salesPerson'},
                 {field: 'visits'},
                 {field: 'dealUserCredit'},
                 {field: 'eligibleOppEmail'},
@@ -72,7 +68,7 @@ class App extends Component {
             ...this.state,
             statusFilter: filter
         });
-        this.agGridData(this.state.statusFilter);
+        this.agGridData(filter);
     }
 
     handleChange(event, index, value) {
@@ -87,61 +83,56 @@ class App extends Component {
         let statusFilterObj = null;
         console.log(filter);
         const d = new Date();
+        const date = new Date();
         if (filter === '1 Year') {
-            d.setMonth(d.getMonth() - 15);
+            d.setFullYear(d.getFullYear() - 1);
         } else if (filter === '6 Months') {
-            d.setMonth(d.getMonth() - 9);
-        } else {
             d.setMonth(d.getMonth() - 6);
+        } else {
+            d.setMonth(d.getMonth() - 3);
         }
         statusFilterObj = {
-            member: "VisitsOverview.visitDate",
-            operator: "afterDate",
-            values: [d.toISOString().slice(0,10)]
+            member: "vo.source",
+            operator: "equals",
+            values: ['Phone']
         };
         console.log(statusFilterObj);
 
         cubejsApi
             .load({
                 measures: [
-                    "VisitsOverview.visits",
-                    "VisitsOverview.dealUserCredit",
-                    "VisitsOverview.eligibleOppEmail",
-                    "VisitsOverview.appointmentsRatio",
-                    "VisitsOverview.appointmentsCreated",
-                    "VisitsOverview.day4Attempted",
-                    "VisitsOverview.day4NonSold",
-                    "VisitsOverview.day3Attempted",
-                    "VisitsOverview.day3NonSold",
-                    "VisitsOverview.mobile",
-                    "VisitsOverview.proposalCount",
-                    "VisitsOverview.soldCount",
-                    "VisitsOverview.soldRatio",
-                    "VisitsOverview.deliveredCount",
-                    "VisitsOverview.deliveredRatio",
-                    "VisitsOverview.nonSoldTraffic",
-                    "VisitsOverview.eligibleCall",
-                    "VisitsOverview.callAttempted",
-                    "VisitsOverview.callRatio",
-                    "VisitsOverview.eligibleText",
-                    "VisitsOverview.textAttempted",
-                    "VisitsOverview.textRatio",
-                    "VisitsOverview.eligibleEmail",
-                    "VisitsOverview.emailAttempted",
-                    "VisitsOverview.emailRatio",
-                    "VisitsOverview.eligibleVideo",
-                    "VisitsOverview.videoSent",
-                    "VisitsOverview.videoRatio",
+                    "vo.visits",
+                    "vo.dealUserCredit",
+                    "vo.eligibleOppEmail",
+                    "vo.appointmentsRatio",
+                    "vo.appointmentsCreated",
+                    "vo.day4Attempted",
+                    "vo.day4NonSold",
+                    "vo.day3Attempted",
+                    "vo.day3NonSold",
+                    "vo.mobile",
+                    "vo.proposalCount",
+                    "vo.soldCount",
+                    "vo.soldRatio",
+                    "vo.deliveredCount",
+                    "vo.deliveredRatio",
+                    "vo.nonSoldTraffic",
+                    "vo.eligibleCall",
+                    "vo.callAttempted",
+                    "vo.callRatio",
+                    "vo.eligibleText",
+                    "vo.textAttempted",
+                    "vo.textRatio",
+                    "vo.eligibleEmail",
+                    "vo.emailAttempted",
+                    "vo.emailRatio",
+                    "vo.eligibleVideo",
+                    "vo.videoSent",
+                    "vo.videoRatio",
                 ],
-                dimensions: ["VisitsOverview.sales1UserId", "VisitsOverview.source"],
-                timeDimensions: [{
-                    "dimension": "VisitsOverview.visitDate",
-                    "granularity": 'day',
-                    "dateRange": "Last year"
-                }],
-                order: {
-                    'VisitsOverview.sales1UserId': 'desc'
-                }
+                timeDimensions: [{"dimension":"vo.visitDate","dateRange": [d.toISOString().slice(0,10), date.toISOString().slice(0,10)] }],
+                dimensions: ["vo.salesPerson"],
+                filters: [statusFilterObj]
             })
             .then(resultSet => {
                 var end = new Date().getTime();
@@ -150,35 +141,35 @@ class App extends Component {
                 let data = [];
                 resultSet.loadResponse.data.forEach((result) => {
                     data.push({
-                        sales1UserId: result['VisitsOverview.sales1UserId'],
-                        visits: result['VisitsOverview.visits'],
-                        dealUserCredit: result['VisitsOverview.dealUserCredit'],
-                        eligibleOppEmail: result['VisitsOverview.eligibleOppEmail'],
-                        appointmentsRatio: result['VisitsOverview.appointmentsRatio'],
-                        appointmentsCreated: result['VisitsOverview.appointmentsCreated'],
-                        day4Attempted: result['VisitsOverview.day4Attempted'],
-                        day4NonSold: result['VisitsOverview.day4NonSold'],
-                        day3Attempted: result['VisitsOverview.day3Attempted'],
-                        day3NonSold: result['VisitsOverview.day3NonSold'],
-                        mobile: result['VisitsOverview.mobile'],
-                        proposalCount: result['VisitsOverview.proposalCount'],
-                        soldCount: result['VisitsOverview.soldCount'],
-                        soldRatio: result['VisitsOverview.soldRatio'],
-                        deliveredCount: result['VisitsOverview.deliveredCount'],
-                        deliveredRatio: result['VisitsOverview.deliveredRatio'],
-                        nonSoldTraffic: result['VisitsOverview.nonSoldTraffic'],
-                        eligibleCall: result['VisitsOverview.eligibleCall'],
-                        callAttempted: result['VisitsOverview.callAttempted'],
-                        callRatio: result['VisitsOverview.callRatio'],
-                        eligibleText: result['VisitsOverview.eligibleText'],
-                        textAttempted: result['VisitsOverview.textAttempted'],
-                        textRatio: result['VisitsOverview.textRatio'],
-                        eligibleEmail: result['VisitsOverview.eligibleEmail'],
-                        emailAttempted: result['VisitsOverview.emailAttempted'],
-                        emailRatio: result['VisitsOverview.emailRatio'],
-                        eligibleVideo: result['VisitsOverview.eligibleVideo'],
-                        videoSent: result['VisitsOverview.videoSent'],
-                        videoRatio: result['VisitsOverview.videoRatio']
+                        salesPerson: result['vo.salesPerson'],
+                        visits: result['vo.visits'],
+                        dealUserCredit: result['vo.dealUserCredit'],
+                        eligibleOppEmail: result['vo.eligibleOppEmail'],
+                        appointmentsRatio: result['vo.appointmentsRatio'],
+                        appointmentsCreated: result['vo.appointmentsCreated'],
+                        day4Attempted: result['vo.day4Attempted'],
+                        day4NonSold: result['vo.day4NonSold'],
+                        day3Attempted: result['vo.day3Attempted'],
+                        day3NonSold: result['vo.day3NonSold'],
+                        mobile: result['vo.mobile'],
+                        proposalCount: result['vo.proposalCount'],
+                        soldCount: result['vo.soldCount'],
+                        soldRatio: result['vo.soldRatio'],
+                        deliveredCount: result['vo.deliveredCount'],
+                        deliveredRatio: result['vo.deliveredRatio'],
+                        nonSoldTraffic: result['vo.nonSoldTraffic'],
+                        eligibleCall: result['vo.eligibleCall'],
+                        callAttempted: result['vo.callAttempted'],
+                        callRatio: result['vo.callRatio'],
+                        eligibleText: result['vo.eligibleText'],
+                        textAttempted: result['vo.textAttempted'],
+                        textRatio: result['vo.textRatio'],
+                        eligibleEmail: result['vo.eligibleEmail'],
+                        emailAttempted: result['vo.emailAttempted'],
+                        emailRatio: result['vo.emailRatio'],
+                        eligibleVideo: result['vo.eligibleVideo'],
+                        videoSent: result['vo.videoSent'],
+                        videoRatio: result['vo.videoRatio']
                     });
                 });
                 this.setState({
@@ -389,6 +380,7 @@ class App extends Component {
                                 </Button>
                             ))}
                         </ButtonGroup>
+                          <br/>
                           {/*<FormControl>*/}
                           {/*    <InputLabel htmlFor="age-native-helper">Source</InputLabel>*/}
                           {/*    <NativeSelect*/}
